@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Callbox</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --bg: #f7f6f2;
@@ -23,282 +26,820 @@
       --error: #a13544;
       --error-soft: #eed7db;
       --radius: 14px;
-      --shadow: 0 1px 2px rgba(40,37,29,.06);
+      --shadow: 0 1px 2px rgba(40, 37, 29, .06);
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'DM Sans', Arial, sans-serif; background: var(--bg); color: var(--text); }
-    .dash { display: grid; grid-template-columns: 252px 1fr; min-height: 100vh; }
-    .side { padding: 24px; border-right: 1px solid var(--border); background: var(--surface); }
-    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .logo-text { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--primary); }
-    .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: .05em; }
-    .navt { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #9a9891; margin: 24px 0 10px; }
-    .nav a { display: block; padding: 11px 14px; border-radius: 12px; color: var(--muted); text-decoration: none; margin-bottom: 6px; font-size: 14px; font-weight: 500; transition: background .15s, color .15s; }
-    .nav a:hover { background: rgba(1,105,111,.06); color: var(--primary); }
-    .nav a.active { background: var(--primary-soft); color: var(--primary); font-weight: 700; }
-    .nav-icon { margin-right: 8px; font-size: 16px; vertical-align: -2px; }
-    .main { padding: 28px 32px; }
-    .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px; }
-    h1 { margin: 0; font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -.01em; }
-    .sub { color: var(--muted); margin-top: 4px; font-size: 14px; }
-    .top-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .last-updated { font-size: 12px; color: var(--muted); }
-    .btn-refresh { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; background: var(--primary); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; border: none; cursor: pointer; transition: opacity .15s, transform .1s; }
-    .btn-refresh:hover { opacity: .88; }
-    .btn-refresh:active { transform: scale(.97); }
-    .btn-refresh:disabled { opacity: .55; cursor: not-allowed; }
-    .btn-refresh svg { width: 15px; height: 15px; transition: transform .6s ease; }
-    .btn-refresh.loading svg { animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .webhook-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); }
-    .webhook-bar label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9a9891; white-space: nowrap; }
-    .webhook-bar input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-family: 'DM Sans', monospace; font-size: 13px; color: var(--text); outline: none; transition: border-color .15s; }
-    .webhook-bar input:focus { border-color: var(--primary); }
-    .badge-status { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
-    .bs-ok   { background: var(--success-soft); color: var(--success); }
-    .bs-err  { background: var(--error-soft);   color: var(--error); }
-    .bs-idle { background: rgba(111,108,101,.1); color: var(--muted); }
+    * {
+      box-sizing: border-box;
+    }
 
-    .date-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); flex-wrap: wrap; }
-    .date-bar label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9a9891; white-space: nowrap; }
-    .date-presets { display: flex; gap: 6px; flex-wrap: wrap; }
-    .preset-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s; }
-    .preset-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
-    .preset-btn.active { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
-    .date-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
-    .date-inputs { display: flex; align-items: center; gap: 8px; }
-    .date-inputs span { font-size: 12px; color: var(--muted); }
-    .date-input { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); outline: none; transition: border-color .15s; cursor: pointer; }
-    .date-input:focus { border-color: var(--primary); }
-    .date-input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .6; }
-    .date-range-label { font-size: 12px; color: var(--muted); white-space: nowrap; margin-left: auto; }
-    .date-range-label strong { color: var(--primary); font-weight: 700; }
+    body {
+      margin: 0;
+      font-family: 'DM Sans', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-    .card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .dash {
+      display: grid;
+      grid-template-columns: 252px 1fr;
+      min-height: 100vh;
+    }
 
-    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
-    .kpi { padding: 20px; }
-    .kpi .l { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: #9a9891; font-weight: 700; }
-    .kpi .v { font-size: 24px; font-weight: 800; font-family: 'Syne', sans-serif; margin-top: 10px; }
-    .kpi .m { font-size: 13px; color: var(--muted); margin-top: 6px; }
-    .kpi .v.success { color: var(--success); }
-    .kpi .v.error   { color: var(--error); }
+    .side {
+      padding: 24px;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+    }
 
-    .skel { background: linear-gradient(90deg, #e8e6e1 25%, #f0ede8 50%, #e8e6e1 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; height: 1em; }
-    .skel-v { height: 1.6em; width: 70%; margin-top: 10px; }
-    .skel-m { height: .9em; width: 90%; margin-top: 8px; }
-    @keyframes shimmer { to { background-position: -200% 0; } }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
 
-    .state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 64px 24px; color: var(--muted); text-align: center; }
-    .state-box svg { opacity: .35; }
-    .state-box p { margin: 0; font-size: 15px; }
-    .state-box small { font-size: 13px; opacity: .75; }
-    .spinner-ring { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+    .logo img {
+      height: 50px;
+      width: auto;
+      object-fit: contain;
+    }
 
-    .section-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin: 24px 0 12px; color: var(--text); }
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
 
-    .charts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
-    .charts-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
-    .chart-card { padding: 20px; }
-    .chart-card .ch { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: #9a9891; margin-bottom: 16px; }
-    .chart-wrap { position: relative; width: 100%; }
+    .logo-sub {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .05em;
+    }
 
-    .table-card { overflow: auto; }
-    .table-card table { width: 100%; border-collapse: collapse; min-width: 700px; }
-    .table-card th, .table-card td { padding: 14px 16px; border-bottom: 1px solid var(--divider); vertical-align: middle; text-align: left; font-size: 13px; }
-    .table-card th { position: sticky; top: 0; background: var(--surface); z-index: 1; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: #9a9891; font-weight: 700; }
-    .table-card tr:last-child td { border-bottom: none; }
-    .table-card tbody tr { transition: background .12s; }
-    .table-card tbody tr:hover { background: rgba(1,105,111,.03); }
+    .navt {
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #9a9891;
+      margin: 24px 0 10px;
+    }
 
-    .name { font-weight: 700; font-size: 14px; }
-    .meta { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .nav a {
+      display: block;
+      padding: 11px 14px;
+      border-radius: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background .15s, color .15s;
+    }
 
-    .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
-    .pill-success { background: var(--success-soft); color: var(--success); }
-    .pill-warn    { background: var(--warning-soft); color: var(--warning); }
-    .pill-error   { background: var(--error-soft);   color: var(--error); }
-    .pill-muted   { background: rgba(111,108,101,.1); color: var(--muted); }
+    .nav a:hover {
+      background: rgba(1, 105, 111, .06);
+      color: var(--primary);
+    }
 
-    .bar-mini { display: flex; align-items: center; gap: 8px; }
-    .bar-mini-bg { flex: 1; background: rgba(1,105,111,.1); height: 6px; border-radius: 3px; overflow: hidden; }
-    .bar-mini-fill { background: var(--primary); height: 100%; border-radius: 3px; }
-    .bar-mini-val { font-size: 12px; color: var(--muted); min-width: 32px; text-align: right; }
+    .nav a.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 700;
+    }
 
-    .origin-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .nav-icon {
+      margin-right: 8px;
+      font-size: 16px;
+      vertical-align: -2px;
+    }
 
-    #vendedoresArea, #tableArea { margin-bottom: 14px; }
+    .main {
+      padding: 28px 32px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.01em;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .last-updated {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+
+    .btn-refresh:hover {
+      opacity: .88;
+    }
+
+    .btn-refresh:active {
+      transform: scale(.97);
+    }
+
+    .btn-refresh:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .btn-refresh svg {
+      width: 15px;
+      height: 15px;
+      transition: transform .6s ease;
+    }
+
+    .btn-refresh.loading svg {
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .webhook-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 14px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .webhook-bar label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #9a9891;
+      white-space: nowrap;
+    }
+
+    .webhook-bar input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      font-family: 'DM Sans', monospace;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    .webhook-bar input:focus {
+      border-color: var(--primary);
+    }
+
+    .badge-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .bs-ok {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .bs-err {
+      background: var(--error-soft);
+      color: var(--error);
+    }
+
+    .bs-idle {
+      background: rgba(111, 108, 101, .1);
+      color: var(--muted);
+    }
+
+    .date-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-wrap: wrap;
+    }
+
+    .date-bar label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #9a9891;
+      white-space: nowrap;
+    }
+
+    .date-presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .preset-btn.active {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .date-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .date-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .date-inputs span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .date-input {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+      cursor: pointer;
+    }
+
+    .date-input:focus {
+      border-color: var(--primary);
+    }
+
+    .date-input::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: .6;
+    }
+
+    .date-range-label {
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      margin-left: auto;
+    }
+
+    .date-range-label strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      padding: 20px;
+    }
+
+    .kpi .l {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: #9a9891;
+      font-weight: 700;
+    }
+
+    .kpi .v {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'Syne', sans-serif;
+      margin-top: 10px;
+    }
+
+    .kpi .m {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .kpi .v.success {
+      color: var(--success);
+    }
+
+    .kpi .v.error {
+      color: var(--error);
+    }
+
+    .skel {
+      background: linear-gradient(90deg, #e8e6e1 25%, #f0ede8 50%, #e8e6e1 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+      height: 1em;
+    }
+
+    .skel-v {
+      height: 1.6em;
+      width: 70%;
+      margin-top: 10px;
+    }
+
+    .skel-m {
+      height: .9em;
+      width: 90%;
+      margin-top: 8px;
+    }
+
+    @keyframes shimmer {
+      to {
+        background-position: -200% 0;
+      }
+    }
+
+    .state-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 64px 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .state-box svg {
+      opacity: .35;
+    }
+
+    .state-box p {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .state-box small {
+      font-size: 13px;
+      opacity: .75;
+    }
+
+    .spinner-ring {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin: 24px 0 12px;
+      color: var(--text);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .charts-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .chart-card {
+      padding: 20px;
+    }
+
+    .chart-card .ch {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: #9a9891;
+      margin-bottom: 16px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .table-card {
+      overflow: auto;
+    }
+
+    .table-card table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    .table-card th,
+    .table-card td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--divider);
+      vertical-align: middle;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .table-card th {
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #9a9891;
+      font-weight: 700;
+    }
+
+    .table-card tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-card tbody tr {
+      transition: background .12s;
+    }
+
+    .table-card tbody tr:hover {
+      background: rgba(1, 105, 111, .03);
+    }
+
+    .name {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .meta {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+
+    .pill-success {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .pill-warn {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    .pill-error {
+      background: var(--error-soft);
+      color: var(--error);
+    }
+
+    .pill-muted {
+      background: rgba(111, 108, 101, .1);
+      color: var(--muted);
+    }
+
+    .bar-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bar-mini-bg {
+      flex: 1;
+      background: rgba(1, 105, 111, .1);
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-mini-fill {
+      background: var(--primary);
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .bar-mini-val {
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    .origin-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    #vendedoresArea,
+    #tableArea {
+      margin-bottom: 14px;
+    }
   </style>
 </head>
+
 <body>
-<div class="dash">
-  <aside class="side">
-    <div class="logo">
-      <div>
-        <div class="logo-text">📞 Callbox</div>
-        <div class="logo-sub">Painel de ligações</div>
+  <div class="dash">
+    <aside class="side">
+      <div class="logo">
+        <!-- Logo oficial Dolarame -->
+        <img src="https://www.dolarame.com.br/wp-content/uploads/2022/11/dolarame_logo_verde-claro_verde-escuro.png"
+          alt="Dolarame" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <!-- Fallback de texto caso a imagem falhe -->
+        <span
+          style="display:none; font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--primary);">Dolarame</span>
       </div>
-    </div>
-    <div class="navt">Navegação</div>
-    <div class="nav">
-      <a class="active" href="#">Visão geral</a>
-      <a href="#">Vendedores</a>
-      <a href="#">Destinos</a>
-      <a href="#">Tentativas</a>
-      <a href="#">SLA</a>
-    </div>
-  </aside>
+      <div class="navt">Navegação</div>
+      <div class="nav">
+        <a class="active" href="#">Visão geral</a>
+        <a href="#">Vendedores</a>
+        <a href="#">Destinos</a>
+        <a href="#">Tentativas</a>
+        <a href="#">SLA</a>
+      </div>
+    </aside>
 
-  <main class="main">
-    <div class="top">
-      <div>
-        <h1>Painel de ligações</h1>
-        <div class="sub" id="subtitle">Configure o webhook e clique em Atualizar.</div>
-      </div>
-      <div class="top-actions">
-        <span class="last-updated" id="lastUpdated"></span>
-        <button class="btn-refresh" id="btnRefresh" onclick="fetchData()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-          </svg>
-          Atualizar
-        </button>
-      </div>
-    </div>
-
-    <div class="webhook-bar">
-      <label>Webhook N8N</label>
-      <input type="text" id="webhookUrl" placeholder="https://seu-n8n.com/webhook/xyz" />
-      <span class="badge-status bs-idle" id="statusBadge">Aguardando</span>
-    </div>
-
-    <div class="date-bar">
-      <label>Período</label>
-      <div class="date-presets">
-        <button class="preset-btn" data-days="0">Hoje</button>
-        <button class="preset-btn" data-days="6">7 dias</button>
-        <button class="preset-btn active" data-days="29">30 dias</button>
-        <button class="preset-btn" data-days="89">90 dias</button>
-      </div>
-      <div class="date-divider"></div>
-      <div class="date-inputs">
-        <input type="date" class="date-input" id="startDate" />
-        <span>→</span>
-        <input type="date" class="date-input" id="endDate" />
-      </div>
-      <span class="date-range-label" id="dateRangeLabel"></span>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpis" id="kpisArea">
-      <div class="card kpi"><div class="l">Total de ligações</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
-      <div class="card kpi"><div class="l">Taxa de atendimento</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
-      <div class="card kpi"><div class="l">Duração média</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
-      <div class="card kpi"><div class="l">Tempo total</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
-    </div>
-
-    <!-- Gráficos principais -->
-    <div class="charts-grid" id="mainChartsArea">
-      <div class="card chart-card">
-        <div class="ch">Ligações por dia</div>
-        <div class="state-box" style="padding:32px;"><div class="skel" style="height:160px;width:100%;border-radius:8px;"></div></div>
-      </div>
-      <div class="card chart-card">
-        <div class="ch">Ligações por hora</div>
-        <div class="state-box" style="padding:32px;"><div class="skel" style="height:160px;width:100%;border-radius:8px;"></div></div>
-      </div>
-    </div>
-
-    <!-- Vendedores -->
-    <div class="section-title">Performance por vendedor</div>
-    <div id="vendedoresArea">
-      <div class="card">
-        <div class="state-box">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-          <p>Dados de vendedores aparecerão aqui.</p>
+    <main class="main">
+      <div class="top">
+        <div>
+          <h1>Painel de ligações</h1>
+          <div class="sub" id="subtitle">Configure o webhook e clique em Atualizar.</div>
+        </div>
+        <div class="top-actions">
+          <span class="last-updated" id="lastUpdated"></span>
+          <button class="btn-refresh" id="btnRefresh" onclick="fetchData()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M23 4v6h-6" />
+              <path d="M1 20v-6h6" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+            Atualizar
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Gráficos de distribuição -->
-    <div class="charts-grid-3" id="distChartsArea" style="display:none;">
-      <div class="card chart-card">
-        <div class="ch">Status das ligações</div>
-        <div class="chart-wrap" style="height:200px;"><canvas id="chartStatus" role="img" aria-label="Distribuição de status das ligações">Dados de status.</canvas></div>
+      <div class="webhook-bar">
+        <label>Webhook N8N</label>
+        <input type="text" id="webhookUrl" placeholder="https://seu-n8n.com/webhook/xyz" />
+        <span class="badge-status bs-idle" id="statusBadge">Aguardando</span>
       </div>
-      <div class="card chart-card">
-        <div class="ch">Eventos</div>
-        <div class="chart-wrap" style="height:200px;"><canvas id="chartEvents" role="img" aria-label="Distribuição de eventos">Dados de eventos.</canvas></div>
+
+      <div class="date-bar">
+        <label>Período</label>
+        <div class="date-presets">
+          <button class="preset-btn" data-days="0">Hoje</button>
+          <button class="preset-btn" data-days="6">7 dias</button>
+          <button class="preset-btn active" data-days="29">30 dias</button>
+        </div>
+        <div class="date-divider"></div>
+        <div class="date-inputs">
+          <input type="date" class="date-input" id="startDate" />
+          <span>→</span>
+          <input type="date" class="date-input" id="endDate" />
+        </div>
+        <span class="date-range-label" id="dateRangeLabel"></span>
       </div>
-      <div class="card chart-card">
-        <div class="ch">Duração das chamadas</div>
-        <div class="chart-wrap" style="height:200px;"><canvas id="chartDuration" role="img" aria-label="Distribuição de duração das chamadas">Dados de duração.</canvas></div>
+
+      <!-- KPIs -->
+      <div class="kpis" id="kpisArea">
+        <div class="card kpi">
+          <div class="l">Total de ligações</div>
+          <div class="skel skel-v"></div>
+          <div class="skel skel-m"></div>
+        </div>
+        <div class="card kpi">
+          <div class="l">Taxa de atendimento</div>
+          <div class="skel skel-v"></div>
+          <div class="skel skel-m"></div>
+        </div>
+        <div class="card kpi">
+          <div class="l">Duração média</div>
+          <div class="skel skel-v"></div>
+          <div class="skel skel-m"></div>
+        </div>
+        <div class="card kpi">
+          <div class="l">Tempo total</div>
+          <div class="skel skel-v"></div>
+          <div class="skel skel-m"></div>
+        </div>
       </div>
-    </div>
 
-    <!-- Tabela de tentativas repetidas -->
-    <div class="section-title">Tentativas repetidas por destino</div>
-    <div class="card table-card" id="tableArea">
-      <div class="state-box">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
-        <p>Nenhum dado carregado.</p>
-        <small>Insira o URL do webhook e clique em Atualizar.</small>
+      <!-- Gráficos principais -->
+      <div class="charts-grid" id="mainChartsArea">
+        <div class="card chart-card">
+          <div class="ch">Ligações por dia</div>
+          <div class="state-box" style="padding:32px;">
+            <div class="skel" style="height:160px;width:100%;border-radius:8px;"></div>
+          </div>
+        </div>
+        <div class="card chart-card">
+          <div class="ch">Ligações por hora</div>
+          <div class="state-box" style="padding:32px;">
+            <div class="skel" style="height:160px;width:100%;border-radius:8px;"></div>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-  const COLORS = {
-    primary:   '#01696f',
-    success:   '#437a22',
-    warning:   '#c8711d',
-    error:     '#a13544',
-    muted:     '#9a9891',
-    blue:      '#2a6db5',
-    amber:     '#b87a12',
-    teal:      '#0d7b70',
-    coral:     '#c04a2a',
-    purple:    '#6044b8',
-  };
+      <!-- Vendedores -->
+      <div class="section-title">Performance por vendedor</div>
+      <div id="vendedoresArea">
+        <div class="card">
+          <div class="state-box">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+            </svg>
+            <p>Dados de vendedores aparecerão aqui.</p>
+          </div>
+        </div>
+      </div>
 
-  const PALETTE = [COLORS.primary, COLORS.blue, COLORS.coral, COLORS.amber, COLORS.purple, COLORS.teal, COLORS.error];
+      <!-- Gráficos de distribuição -->
+      <div class="charts-grid-3" id="distChartsArea" style="display:none;">
+        <div class="card chart-card">
+          <div class="ch">Status das ligações</div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="chartStatus" role="img"
+              aria-label="Distribuição de status das ligações">Dados de status.</canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="ch">Eventos</div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="chartEvents" role="img"
+              aria-label="Distribuição de eventos">Dados de eventos.</canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="ch">Duração das chamadas</div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="chartDuration" role="img"
+              aria-label="Distribuição de duração das chamadas">Dados de duração.</canvas></div>
+        </div>
+      </div>
 
-  let chartInstances = {};
+      <!-- Tabela de tentativas repetidas -->
+      <div class="section-title">Tentativas repetidas por destino</div>
+      <div class="card table-card" id="tableArea">
+        <div class="state-box">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 3h18v18H3z" />
+            <path d="M3 9h18M9 21V9" />
+          </svg>
+          <p>Nenhum dado carregado.</p>
+          <small>Insira o URL do webhook e clique em Atualizar.</small>
+        </div>
+      </div>
+    </main>
+  </div>
 
-  function destroyChart(id) {
-    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
-  }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script>
+    const COLORS = {
+      primary: '#01696f',
+      success: '#437a22',
+      warning: '#c8711d',
+      error: '#a13544',
+      muted: '#9a9891',
+      blue: '#2a6db5',
+      amber: '#b87a12',
+      teal: '#0d7b70',
+      coral: '#c04a2a',
+      purple: '#6044b8',
+    };
 
-  const fmtSec = s => {
-    const m = Math.floor(s / 60), sec = Math.round(s % 60);
-    return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
-  };
+    const PALETTE = [COLORS.primary, COLORS.blue, COLORS.coral, COLORS.amber, COLORS.purple, COLORS.teal, COLORS.error];
 
-  const fmtHrs = h => h >= 1 ? `${h.toFixed(1)}h` : `${Math.round(h * 60)}min`;
+    let chartInstances = {};
 
-  function cleanName(n) {
-    return n ? n.replace(/\s*<\d+>$/, '') : '—';
-  }
+    function destroyChart(id) {
+      if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+    }
 
-  function initials(name) {
-    const parts = cleanName(name).split(' ');
-    return (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
-  }
+    const fmtSec = s => {
+      const m = Math.floor(s / 60), sec = Math.round(s % 60);
+      return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+    };
 
-  // ── KPIs ─────────────────────────────────────────────────────────────
-  function renderKPIs(m) {
-    const ov  = m.overview || {};
-    const sla = m.sla_metrics || {};
-    const peak = m.peak_usage || {};
+    const fmtHrs = h => h >= 1 ? `${h.toFixed(1)}h` : `${Math.round(h * 60)}min`;
 
-    const answerRate = sla.answer_rate ?? 0;
-    const failRate   = sla.failure_rate ?? 0;
+    function cleanName(n) {
+      return n ? n.replace(/\s*<\d+>$/, '') : '—';
+    }
 
-    document.getElementById('kpisArea').innerHTML = `
+    function initials(name) {
+      const parts = cleanName(name).split(' ');
+      return (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
+    }
+
+    // ── KPIs ─────────────────────────────────────────────────────────────
+    function renderKPIs(m) {
+      const ov = m.overview || {};
+      const sla = m.sla_metrics || {};
+      const peak = m.peak_usage || {};
+
+      const answerRate = sla.answer_rate ?? 0;
+      const failRate = sla.failure_rate ?? 0;
+
+      document.getElementById('kpisArea').innerHTML = `
       <div class="card kpi">
         <div class="l">Total de ligações</div>
         <div class="v">${(ov.total_calls || 0).toLocaleString('pt-BR')}</div>
@@ -320,14 +861,14 @@
         <div class="m">Pico: ${peak.highest_hour?.hour ?? '—'}h (${peak.highest_hour?.calls ?? 0} lig.)</div>
       </div>
     `;
-  }
+    }
 
-  // ── Gráficos principais ───────────────────────────────────────────────
-  function renderMainCharts(m) {
-    const perDay = (m.calls_per_day || []).sort((a,b) => a.date > b.date ? 1 : -1);
-    const perHour = (m.calls_by_hour || []).sort((a,b) => a.hour - b.hour);
+    // ── Gráficos principais ───────────────────────────────────────────────
+    function renderMainCharts(m) {
+      const perDay = (m.calls_per_day || []).sort((a, b) => a.date > b.date ? 1 : -1);
+      const perHour = (m.calls_by_hour || []).sort((a, b) => a.hour - b.hour);
 
-    document.getElementById('mainChartsArea').innerHTML = `
+      document.getElementById('mainChartsArea').innerHTML = `
       <div class="card chart-card">
         <div class="ch">Ligações por dia</div>
         <div class="chart-wrap" style="height:220px;"><canvas id="chartDay" role="img" aria-label="Ligações por dia">Dados por dia.</canvas></div>
@@ -338,124 +879,124 @@
       </div>
     `;
 
-    destroyChart('chartDay');
-    destroyChart('chartHour');
+      destroyChart('chartDay');
+      destroyChart('chartHour');
 
-    chartInstances['chartDay'] = new Chart(document.getElementById('chartDay'), {
-      type: 'bar',
-      data: {
-        labels: perDay.map(d => d.date),
-        datasets: [{
-          label: 'Ligações',
-          data: perDay.map(d => d.total_calls),
-          backgroundColor: COLORS.primary + 'bb',
-          borderColor: COLORS.primary,
-          borderWidth: 1,
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { font: { size: 11 }, color: COLORS.muted, maxRotation: 45, autoSkip: true } },
-          y: { ticks: { font: { size: 11 }, color: COLORS.muted } }
-        }
-      }
-    });
-
-    chartInstances['chartHour'] = new Chart(document.getElementById('chartHour'), {
-      type: 'bar',
-      data: {
-        labels: perHour.map(d => `${d.hour}h`),
-        datasets: [{
-          label: 'Ligações',
-          data: perHour.map(d => d.total_calls),
-          backgroundColor: COLORS.teal + 'bb',
-          borderColor: COLORS.teal,
-          borderWidth: 1,
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { font: { size: 11 }, color: COLORS.muted, autoSkip: false } },
-          y: { ticks: { font: { size: 11 }, color: COLORS.muted } }
-        }
-      }
-    });
-  }
-
-  // ── Gráficos de distribuição ──────────────────────────────────────────
-  function renderDistCharts(m) {
-    document.getElementById('distChartsArea').style.display = '';
-
-    const statusDist   = m.status_distribution   || [];
-    const eventsDist   = m.events_distribution   || [];
-    const durationDist = m.duration_ranges        || [];
-
-    destroyChart('chartStatus');
-    destroyChart('chartEvents');
-    destroyChart('chartDuration');
-
-    const makeDonut = (id, labels, data, colors) => new Chart(document.getElementById(id), {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#f9f8f5' }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        cutout: '62%',
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom',
-            labels: { font: { size: 11 }, color: '#6f6c65', boxWidth: 10, padding: 10 }
+      chartInstances['chartDay'] = new Chart(document.getElementById('chartDay'), {
+        type: 'bar',
+        data: {
+          labels: perDay.map(d => d.date),
+          datasets: [{
+            label: 'Ligações',
+            data: perDay.map(d => d.total_calls),
+            backgroundColor: COLORS.primary + 'bb',
+            borderColor: COLORS.primary,
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 11 }, color: COLORS.muted, maxRotation: 45, autoSkip: true } },
+            y: { ticks: { font: { size: 11 }, color: COLORS.muted } }
           }
         }
-      }
-    });
+      });
 
-    chartInstances['chartStatus'] = makeDonut(
-      'chartStatus',
-      statusDist.map(d => d.status),
-      statusDist.map(d => d.count),
-      PALETTE.slice(0, statusDist.length)
-    );
-
-    chartInstances['chartEvents'] = makeDonut(
-      'chartEvents',
-      eventsDist.map(d => d.event),
-      eventsDist.map(d => d.count),
-      [COLORS.success, COLORS.error, COLORS.amber, COLORS.blue].slice(0, eventsDist.length)
-    );
-
-    chartInstances['chartDuration'] = makeDonut(
-      'chartDuration',
-      durationDist.map(d => d.range),
-      durationDist.map(d => d.count),
-      [COLORS.primary, COLORS.teal, COLORS.amber, COLORS.coral].slice(0, durationDist.length)
-    );
-  }
-
-  // ── Vendedores ────────────────────────────────────────────────────────
-  function renderVendedores(m) {
-    const origins = (m.top_origins || []).slice(0, 12);
-    const maxCalls = Math.max(...origins.map(o => o.total_calls), 1);
-
-    if (!origins.length) {
-      document.getElementById('vendedoresArea').innerHTML = `
-        <div class="card"><div class="state-box"><p>Nenhum vendedor encontrado.</p></div></div>`;
-      return;
+      chartInstances['chartHour'] = new Chart(document.getElementById('chartHour'), {
+        type: 'bar',
+        data: {
+          labels: perHour.map(d => `${d.hour}h`),
+          datasets: [{
+            label: 'Ligações',
+            data: perHour.map(d => d.total_calls),
+            backgroundColor: COLORS.teal + 'bb',
+            borderColor: COLORS.teal,
+            borderWidth: 1,
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { size: 11 }, color: COLORS.muted, autoSkip: false } },
+            y: { ticks: { font: { size: 11 }, color: COLORS.muted } }
+          }
+        }
+      });
     }
 
-    const canvasId = 'chartVendedores';
-    destroyChart(canvasId);
+    // ── Gráficos de distribuição ──────────────────────────────────────────
+    function renderDistCharts(m) {
+      document.getElementById('distChartsArea').style.display = '';
 
-    document.getElementById('vendedoresArea').innerHTML = `
+      const statusDist = m.status_distribution || [];
+      const eventsDist = m.events_distribution || [];
+      const durationDist = m.duration_ranges || [];
+
+      destroyChart('chartStatus');
+      destroyChart('chartEvents');
+      destroyChart('chartDuration');
+
+      const makeDonut = (id, labels, data, colors) => new Chart(document.getElementById(id), {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#f9f8f5' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              labels: { font: { size: 11 }, color: '#6f6c65', boxWidth: 10, padding: 10 }
+            }
+          }
+        }
+      });
+
+      chartInstances['chartStatus'] = makeDonut(
+        'chartStatus',
+        statusDist.map(d => d.status),
+        statusDist.map(d => d.count),
+        PALETTE.slice(0, statusDist.length)
+      );
+
+      chartInstances['chartEvents'] = makeDonut(
+        'chartEvents',
+        eventsDist.map(d => d.event),
+        eventsDist.map(d => d.count),
+        [COLORS.success, COLORS.error, COLORS.amber, COLORS.blue].slice(0, eventsDist.length)
+      );
+
+      chartInstances['chartDuration'] = makeDonut(
+        'chartDuration',
+        durationDist.map(d => d.range),
+        durationDist.map(d => d.count),
+        [COLORS.primary, COLORS.teal, COLORS.amber, COLORS.coral].slice(0, durationDist.length)
+      );
+    }
+
+    // ── Vendedores ────────────────────────────────────────────────────────
+    function renderVendedores(m) {
+      const origins = (m.top_origins || []).slice(0, 12);
+      const maxCalls = Math.max(...origins.map(o => o.total_calls), 1);
+
+      if (!origins.length) {
+        document.getElementById('vendedoresArea').innerHTML = `
+        <div class="card"><div class="state-box"><p>Nenhum vendedor encontrado.</p></div></div>`;
+        return;
+      }
+
+      const canvasId = 'chartVendedores';
+      destroyChart(canvasId);
+
+      document.getElementById('vendedoresArea').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div class="card chart-card">
           <div class="ch">Volume de ligações por operador</div>
@@ -467,13 +1008,13 @@
           <div class="ch">Ranking detalhado</div>
           <div style="display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:${Math.max(origins.length * 38 + 60, 200)}px;">
             ${origins.map((o, i) => {
-              const answered = o.statuses?.['Atendida'] || 0;
-              const total = o.total_calls;
-              const rate = total > 0 ? Math.round(answered / total * 100) : 0;
-              const cls = rate >= 70 ? 'pill-success' : rate >= 45 ? 'pill-warn' : 'pill-error';
-              return `
+        const answered = o.statuses?.['Atendida'] || 0;
+        const total = o.total_calls;
+        const rate = total > 0 ? Math.round(answered / total * 100) : 0;
+        const cls = rate >= 70 ? 'pill-success' : rate >= 45 ? 'pill-warn' : 'pill-error';
+        return `
                 <div style="display:flex;align-items:center;gap:10px;">
-                  <span class="origin-badge">${initials(o.origin) || (i+1)}</span>
+                  <span class="origin-badge">${initials(o.origin) || (i + 1)}</span>
                   <div style="flex:1;min-width:0;">
                     <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${cleanName(o.origin)}</div>
                     <div class="bar-mini">
@@ -483,7 +1024,7 @@
                   </div>
                   <span class="pill ${cls}">${rate}%</span>
                 </div>`;
-            }).join('')}
+      }).join('')}
           </div>
         </div>
       </div>
@@ -504,11 +1045,11 @@
           </thead>
           <tbody>
             ${origins.map(o => {
-              const answered = o.statuses?.['Atendida'] || 0;
-              const failed   = (o.statuses?.['Nao Atentida'] || 0) + (o.events?.Falha || 0);
-              const rate = o.total_calls > 0 ? Math.round(answered / o.total_calls * 100) : 0;
-              const cls = rate >= 70 ? 'pill-success' : rate >= 45 ? 'pill-warn' : 'pill-error';
-              return `<tr>
+        const answered = o.statuses?.['Atendida'] || 0;
+        const failed = (o.statuses?.['Nao Atentida'] || 0) + (o.events?.Falha || 0);
+        const rate = o.total_calls > 0 ? Math.round(answered / o.total_calls * 100) : 0;
+        const cls = rate >= 70 ? 'pill-success' : rate >= 45 ? 'pill-warn' : 'pill-error';
+        return `<tr>
                 <td><span class="name">${cleanName(o.origin)}</span></td>
                 <td><strong>${o.total_calls}</strong></td>
                 <td style="color:var(--success);font-weight:700;">${answered}</td>
@@ -518,59 +1059,59 @@
                 <td>${fmtSec(o.average_duration_seconds)}</td>
                 <td>${o.unique_destinations}</td>
               </tr>`;
-            }).join('')}
+      }).join('')}
           </tbody>
         </table>
       </div>
     `;
 
-    chartInstances[canvasId] = new Chart(document.getElementById(canvasId), {
-      type: 'bar',
-      data: {
-        labels: origins.map(o => cleanName(o.origin)),
-        datasets: [
-          {
-            label: 'Atendidas',
-            data: origins.map(o => o.statuses?.['Atendida'] || 0),
-            backgroundColor: COLORS.success + 'cc',
-            borderRadius: 4,
-          },
-          {
-            label: 'Falhas/Não atendidas',
-            data: origins.map(o => (o.statuses?.['Nao Atentida'] || 0) + (o.events?.Falha || 0)),
-            backgroundColor: COLORS.error + 'cc',
-            borderRadius: 4,
-          }
-        ]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true, position: 'top',
-            labels: { font: { size: 11 }, color: '#6f6c65', boxWidth: 10, padding: 10 }
-          }
+      chartInstances[canvasId] = new Chart(document.getElementById(canvasId), {
+        type: 'bar',
+        data: {
+          labels: origins.map(o => cleanName(o.origin)),
+          datasets: [
+            {
+              label: 'Atendidas',
+              data: origins.map(o => o.statuses?.['Atendida'] || 0),
+              backgroundColor: COLORS.success + 'cc',
+              borderRadius: 4,
+            },
+            {
+              label: 'Falhas/Não atendidas',
+              data: origins.map(o => (o.statuses?.['Nao Atentida'] || 0) + (o.events?.Falha || 0)),
+              backgroundColor: COLORS.error + 'cc',
+              borderRadius: 4,
+            }
+          ]
         },
-        scales: {
-          x: { stacked: true, ticks: { font: { size: 10 }, color: COLORS.muted } },
-          y: { stacked: true, ticks: { font: { size: 11 }, color: COLORS.muted } }
+        options: {
+          indexAxis: 'y',
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true, position: 'top',
+              labels: { font: { size: 11 }, color: '#6f6c65', boxWidth: 10, padding: 10 }
+            }
+          },
+          scales: {
+            x: { stacked: true, ticks: { font: { size: 10 }, color: COLORS.muted } },
+            y: { stacked: true, ticks: { font: { size: 11 }, color: COLORS.muted } }
+          }
         }
-      }
-    });
-  }
-
-  // ── Tabela de tentativas ──────────────────────────────────────────────
-  function renderTable(m) {
-    const retries = (m.retry_metrics || []).slice(0, 50);
-
-    if (!retries.length) {
-      document.getElementById('tableArea').innerHTML = `
-        <div class="state-box"><p>Nenhuma tentativa repetida encontrada.</p></div>`;
-      return;
+      });
     }
 
-    document.getElementById('tableArea').innerHTML = `
+    // ── Tabela de tentativas ──────────────────────────────────────────────
+    function renderTable(m) {
+      const retries = (m.retry_metrics || []).slice(0, 50);
+
+      if (!retries.length) {
+        document.getElementById('tableArea').innerHTML = `
+        <div class="state-box"><p>Nenhuma tentativa repetida encontrada.</p></div>`;
+        return;
+      }
+
+      document.getElementById('tableArea').innerHTML = `
       <table>
         <thead>
           <tr>
@@ -585,9 +1126,9 @@
         </thead>
         <tbody>
           ${retries.map(r => {
-            const rate = r.attempts > 0 ? Math.round(r.answered / r.attempts * 100) : 0;
-            const cls = rate >= 70 ? 'pill-success' : rate >= 40 ? 'pill-warn' : 'pill-error';
-            return `<tr>
+        const rate = r.attempts > 0 ? Math.round(r.answered / r.attempts * 100) : 0;
+        const cls = rate >= 70 ? 'pill-success' : rate >= 40 ? 'pill-warn' : 'pill-error';
+        return `<tr>
               <td><span class="name">${cleanName(r.origin)}</span></td>
               <td>${r.destiny || '—'}</td>
               <td><strong>${r.attempts}</strong></td>
@@ -596,181 +1137,182 @@
               <td><span class="pill ${cls}">${rate}%</span></td>
               <td>${((r.total_duration_seconds || 0) / 60).toFixed(1)} min</td>
             </tr>`;
-          }).join('')}
+      }).join('')}
         </tbody>
       </table>
     `;
-  }
+    }
 
-  // ── Fetch ─────────────────────────────────────────────────────────────
-  async function fetchData() {
-    const url = document.getElementById('webhookUrl').value.trim();
-    if (!url) { alert('Insira o URL do webhook do N8N antes de atualizar.'); return; }
+    // ── Fetch ─────────────────────────────────────────────────────────────
+    async function fetchData() {
+      const url = document.getElementById('webhookUrl').value.trim();
+      if (!url) { alert('Insira o URL do webhook do N8N antes de atualizar.'); return; }
 
-    const btn   = document.getElementById('btnRefresh');
-    const badge = document.getElementById('statusBadge');
-    const sub   = document.getElementById('subtitle');
+      const btn = document.getElementById('btnRefresh');
+      const badge = document.getElementById('statusBadge');
+      const sub = document.getElementById('subtitle');
 
-    btn.disabled = true;
-    btn.classList.add('loading');
-    badge.textContent = 'Carregando…';
-    badge.className   = 'badge-status bs-idle';
+      btn.disabled = true;
+      btn.classList.add('loading');
+      badge.textContent = 'Carregando…';
+      badge.className = 'badge-status bs-idle';
 
-    const skelKpi = `
+      const skelKpi = `
       <div class="card kpi"><div class="l">Total de ligações</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
       <div class="card kpi"><div class="l">Taxa de atendimento</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
       <div class="card kpi"><div class="l">Duração média</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>
       <div class="card kpi"><div class="l">Tempo total</div><div class="skel skel-v"></div><div class="skel skel-m"></div></div>`;
 
-    document.getElementById('kpisArea').innerHTML = skelKpi;
-    document.getElementById('tableArea').innerHTML = `<div class="state-box"><div class="spinner-ring"></div><p>Buscando dados no N8N…</p><small>Isso pode levar alguns segundos.</small></div>`;
-    document.getElementById('distChartsArea').style.display = 'none';
+      document.getElementById('kpisArea').innerHTML = skelKpi;
+      document.getElementById('tableArea').innerHTML = `<div class="state-box"><div class="spinner-ring"></div><p>Buscando dados no N8N…</p><small>Isso pode levar alguns segundos.</small></div>`;
+      document.getElementById('distChartsArea').style.display = 'none';
 
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          source: 'callbox-board',
-          timestamp: new Date().toISOString(),
-          startDate: document.getElementById('startDate').value,
-          endDate: document.getElementById('endDate').value,
-        }),
-      });
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source: 'callbox-board',
+            timestamp: new Date().toISOString(),
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+          }),
+        });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      let raw = await res.json();
-      console.log('[Callbox] Resposta bruta do N8N:', JSON.stringify(raw, null, 2));
+        let raw = await res.json();
+        console.log('[Callbox] Resposta bruta do N8N:', JSON.stringify(raw, null, 2));
 
-      // Normaliza: pode vir como [{json: metrics}] ou direto como metrics
-      let m = raw;
-      if (Array.isArray(m)) m = m[0];
-      if (m?.json) m = m.json;
+        // Normaliza: pode vir como [{json: metrics}] ou direto como metrics
+        let m = raw;
+        if (Array.isArray(m)) m = m[0];
+        if (m?.json) m = m.json;
 
-      // Verifica se tem a estrutura esperada
-      if (!m?.overview) throw new Error('Estrutura inesperada. Verifique o console (F12).');
+        // Verifica se tem a estrutura esperada
+        if (!m?.overview) throw new Error('Estrutura inesperada. Verifique o console (F12).');
 
-      renderKPIs(m);
-      renderMainCharts(m);
-      renderVendedores(m);
-      renderDistCharts(m);
-      renderTable(m);
+        renderKPIs(m);
+        renderMainCharts(m);
+        renderVendedores(m);
+        renderDistCharts(m);
+        renderTable(m);
 
-      const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('lastUpdated').textContent = `Atualizado às ${now}`;
-      sub.textContent = `${(m.overview?.total_calls || 0).toLocaleString('pt-BR')} ligações carregadas.`;
-      badge.textContent = 'OK';
-      badge.className   = 'badge-status bs-ok';
+        const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('lastUpdated').textContent = `Atualizado às ${now}`;
+        sub.textContent = `${(m.overview?.total_calls || 0).toLocaleString('pt-BR')} ligações carregadas.`;
+        badge.textContent = 'OK';
+        badge.className = 'badge-status bs-ok';
 
-    } catch (err) {
-      document.getElementById('kpisArea').innerHTML = `
+      } catch (err) {
+        document.getElementById('kpisArea').innerHTML = `
         <div class="card kpi"><div class="l">Total de ligações</div><div class="v">—</div></div>
         <div class="card kpi"><div class="l">Taxa de atendimento</div><div class="v">—</div></div>
         <div class="card kpi"><div class="l">Duração média</div><div class="v">—</div></div>
         <div class="card kpi"><div class="l">Tempo total</div><div class="v">—</div></div>`;
 
-      document.getElementById('tableArea').innerHTML = `
+        document.getElementById('tableArea').innerHTML = `
         <div class="state-box">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <p>Erro ao buscar dados.</p>
           <small>${err.message}</small>
         </div>`;
 
-      badge.textContent = 'Erro';
-      badge.className   = 'badge-status bs-err';
-      sub.textContent   = 'Falha ao carregar dados.';
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove('loading');
-    }
-  }
-
-  // ── Date range ────────────────────────────────────────────────────────
-  function toLocalISO(date) {
-    const y = date.getFullYear(), m = String(date.getMonth()+1).padStart(2,'0'), d = String(date.getDate()).padStart(2,'0');
-    return `${y}-${m}-${d}`;
-  }
-
-  function applyPreset(days) {
-    const end = new Date(), start = new Date();
-    start.setDate(start.getDate() - days);
-    document.getElementById('startDate').value = toLocalISO(start);
-    document.getElementById('endDate').value   = toLocalISO(end);
-    updateRangeLabel();
-  }
-
-  function updateRangeLabel() {
-    const start = document.getElementById('startDate').value;
-    const end   = document.getElementById('endDate').value;
-    const lbl   = document.getElementById('dateRangeLabel');
-    if (!start || !end) { lbl.innerHTML = ''; return; }
-    const fmt = d => new Date(d+'T00:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
-    const diffDays = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
-    lbl.innerHTML = `<strong>${fmt(start)}</strong> até <strong>${fmt(end)}</strong> &nbsp;·&nbsp; ${diffDays} dia${diffDays !== 1 ? 's' : ''}`;
-  }
-
-  function syncPresetButtons() {
-    const start = document.getElementById('startDate').value;
-    const end   = document.getElementById('endDate').value;
-    if (!start || !end) return;
-    const today = new Date(); today.setHours(0,0,0,0);
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-      const d = parseInt(btn.dataset.days);
-      const expectedStart = new Date(today);
-      expectedStart.setDate(today.getDate() - d);
-      btn.classList.toggle('active', toLocalISO(expectedStart) === start && toLocalISO(today) === end);
-    });
-  }
-
-  function onDateChange() {
-    const start = document.getElementById('startDate').value;
-    const end   = document.getElementById('endDate').value;
-    updateRangeLabel();
-    syncPresetButtons();
-    if (start && end && start <= end) {
-      const url = document.getElementById('webhookUrl').value.trim();
-      if (url) fetchData();
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const savedUrl = localStorage.getItem('callbox_webhook_url');
-    if (savedUrl) document.getElementById('webhookUrl').value = savedUrl;
-
-    const savedStart = localStorage.getItem('callbox_start_date');
-    const savedEnd   = localStorage.getItem('callbox_end_date');
-    if (savedStart && savedEnd) {
-      document.getElementById('startDate').value = savedStart;
-      document.getElementById('endDate').value   = savedEnd;
-      updateRangeLabel(); syncPresetButtons();
-    } else {
-      applyPreset(29);
+        badge.textContent = 'Erro';
+        badge.className = 'badge-status bs-err';
+        sub.textContent = 'Falha ao carregar dados.';
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
     }
 
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        applyPreset(parseInt(btn.dataset.days));
-        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+    // ── Date range ────────────────────────────────────────────────────────
+    function toLocalISO(date) {
+      const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function applyPreset(days) {
+      const end = new Date(), start = new Date();
+      start.setDate(start.getDate() - days);
+      document.getElementById('startDate').value = toLocalISO(start);
+      document.getElementById('endDate').value = toLocalISO(end);
+      updateRangeLabel();
+    }
+
+    function updateRangeLabel() {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      const lbl = document.getElementById('dateRangeLabel');
+      if (!start || !end) { lbl.innerHTML = ''; return; }
+      const fmt = d => new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+      const diffDays = Math.round((new Date(end) - new Date(start)) / 86400000) + 1;
+      lbl.innerHTML = `<strong>${fmt(start)}</strong> até <strong>${fmt(end)}</strong> &nbsp;·&nbsp; ${diffDays} dia${diffDays !== 1 ? 's' : ''}`;
+    }
+
+    function syncPresetButtons() {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      if (!start || !end) return;
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        const d = parseInt(btn.dataset.days);
+        const expectedStart = new Date(today);
+        expectedStart.setDate(today.getDate() - d);
+        btn.classList.toggle('active', toLocalISO(expectedStart) === start && toLocalISO(today) === end);
+      });
+    }
+
+    function onDateChange() {
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+      updateRangeLabel();
+      syncPresetButtons();
+      if (start && end && start <= end) {
         const url = document.getElementById('webhookUrl').value.trim();
         if (url) fetchData();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUrl = localStorage.getItem('callbox_webhook_url');
+      if (savedUrl) document.getElementById('webhookUrl').value = savedUrl;
+
+      const savedStart = localStorage.getItem('callbox_start_date');
+      const savedEnd = localStorage.getItem('callbox_end_date');
+      if (savedStart && savedEnd) {
+        document.getElementById('startDate').value = savedStart;
+        document.getElementById('endDate').value = savedEnd;
+        updateRangeLabel(); syncPresetButtons();
+      } else {
+        applyPreset(29);
+      }
+
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          applyPreset(parseInt(btn.dataset.days));
+          document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const url = document.getElementById('webhookUrl').value.trim();
+          if (url) fetchData();
+        });
+      });
+
+      document.getElementById('startDate').addEventListener('change', () => {
+        localStorage.setItem('callbox_start_date', document.getElementById('startDate').value);
+        onDateChange();
+      });
+      document.getElementById('endDate').addEventListener('change', () => {
+        localStorage.setItem('callbox_end_date', document.getElementById('endDate').value);
+        onDateChange();
       });
     });
 
-    document.getElementById('startDate').addEventListener('change', () => {
-      localStorage.setItem('callbox_start_date', document.getElementById('startDate').value);
-      onDateChange();
+    document.getElementById('webhookUrl').addEventListener('input', e => {
+      localStorage.setItem('callbox_webhook_url', e.target.value);
     });
-    document.getElementById('endDate').addEventListener('change', () => {
-      localStorage.setItem('callbox_end_date', document.getElementById('endDate').value);
-      onDateChange();
-    });
-  });
-
-  document.getElementById('webhookUrl').addEventListener('input', e => {
-    localStorage.setItem('callbox_webhook_url', e.target.value);
-  });
-</script>
+  </script>
 </body>
+
 </html>
