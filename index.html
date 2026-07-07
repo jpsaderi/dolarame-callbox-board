@@ -362,6 +362,21 @@
       font-weight: 700;
     }
 
+    select.date-input {
+      appearance: auto;
+      min-width: 200px;
+    }
+
+    .filter-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
     .card {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -703,6 +718,14 @@
         <span class="date-range-label" id="dateRangeLabel"></span>
       </div>
 
+      <div class="date-bar" id="vendorBar" style="display:none;">
+        <label>Vendedor</label>
+        <select id="originFilter" class="date-input">
+          <option value="all">Todos os vendedores</option>
+        </select>
+        <span class="filter-badge" id="filterBadge" style="display:none;"></span>
+      </div>
+
       <!-- KPIs -->
       <div class="kpis" id="kpisArea">
         <div class="card kpi">
@@ -744,7 +767,7 @@
       </div>
 
       <!-- Vendedores -->
-      <div class="section-title">Performance por vendedor</div>
+      <div class="section-title" id="vendedoresTitle">Performance por vendedor</div>
       <div id="vendedoresArea">
         <div class="card">
           <div class="state-box">
@@ -809,6 +832,7 @@
     const PALETTE = [COLORS.primary, COLORS.blue, COLORS.coral, COLORS.amber, COLORS.purple, COLORS.teal, COLORS.error];
 
     let chartInstances = {};
+    let rawMetrics = null; // guarda a resposta completa do webhook (com by_origin)
 
     function destroyChart(id) {
       if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
@@ -828,6 +852,76 @@
     function initials(name) {
       const parts = cleanName(name).split(' ');
       return (parts[0]?.[0] || '') + (parts[1]?.[0] || '');
+    }
+
+    function escapeAttr(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    }
+
+    // ── Filtro por vendedor ─────────────────────────────────────────────
+    function populateOriginFilter(m) {
+      const select = document.getElementById('originFilter');
+      const bar = document.getElementById('vendorBar');
+
+      const origins = m.available_origins || Object.keys(m.by_origin || {});
+
+      if (!origins.length) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = '';
+
+      // mantém a seleção atual se ainda existir, senão tenta a salva, senão "all"
+      const hadOptions = select.options.length > 1;
+      const saved = localStorage.getItem('callbox_origin_filter') || 'all';
+      const desired = hadOptions ? select.value : saved;
+
+      select.innerHTML = '<option value="all">Todos os vendedores</option>' +
+        origins.slice().sort((a, b) => cleanName(a).localeCompare(cleanName(b)))
+          .map(o => `<option value="${escapeAttr(o)}">${cleanName(o)}</option>`)
+          .join('');
+
+      select.value = (desired === 'all' || origins.includes(desired)) ? desired : 'all';
+    }
+
+    function getActiveMetrics() {
+      if (!rawMetrics) return null;
+      const sel = document.getElementById('originFilter').value;
+      if (!sel || sel === 'all') return rawMetrics;
+      return (rawMetrics.by_origin && rawMetrics.by_origin[sel]) || rawMetrics;
+    }
+
+    function renderActive() {
+      const m = getActiveMetrics();
+      if (!m) return;
+
+      const sel = document.getElementById('originFilter').value || 'all';
+      const badge = document.getElementById('filterBadge');
+      const vendedoresTitle = document.getElementById('vendedoresTitle');
+      const vendedoresArea = document.getElementById('vendedoresArea');
+      const sub = document.getElementById('subtitle');
+
+      renderKPIs(m);
+      renderMainCharts(m);
+      renderDistCharts(m);
+      renderTable(m);
+
+      if (sel === 'all') {
+        badge.style.display = 'none';
+        vendedoresTitle.style.display = '';
+        vendedoresArea.style.display = '';
+        renderVendedores(m);
+        sub.textContent = `${(m.overview?.total_calls || 0).toLocaleString('pt-BR')} ligações carregadas.`;
+      } else {
+        badge.textContent = cleanName(sel);
+        badge.style.display = '';
+        // Com um único vendedor selecionado, a tabela de "performance por vendedor"
+        // fica redundante (mostraria só 1 linha), então escondemos essa seção.
+        vendedoresTitle.style.display = 'none';
+        vendedoresArea.style.display = 'none';
+        sub.textContent = `${cleanName(sel)} · ${(m.overview?.total_calls || 0).toLocaleString('pt-BR')} ligações`;
+      }
     }
 
     // ── KPIs ─────────────────────────────────────────────────────────────
@@ -1192,15 +1286,12 @@
         // Verifica se tem a estrutura esperada
         if (!m?.overview) throw new Error('Estrutura inesperada. Verifique o console (F12).');
 
-        renderKPIs(m);
-        renderMainCharts(m);
-        renderVendedores(m);
-        renderDistCharts(m);
-        renderTable(m);
+        rawMetrics = m;
+        populateOriginFilter(m);
+        renderActive();
 
         const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         document.getElementById('lastUpdated').textContent = `Atualizado às ${now}`;
-        sub.textContent = `${(m.overview?.total_calls || 0).toLocaleString('pt-BR')} ligações carregadas.`;
         badge.textContent = 'OK';
         badge.className = 'badge-status bs-ok';
 
@@ -1306,6 +1397,11 @@
       document.getElementById('endDate').addEventListener('change', () => {
         localStorage.setItem('callbox_end_date', document.getElementById('endDate').value);
         onDateChange();
+      });
+
+      document.getElementById('originFilter').addEventListener('change', () => {
+        localStorage.setItem('callbox_origin_filter', document.getElementById('originFilter').value);
+        renderActive();
       });
     });
 
